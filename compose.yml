@@ -12,16 +12,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  web:
-    build: .
-    container_name: gis_app
-    restart: always
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: "postgres://postgres:postgres@db:5432/gis_db"
-    depends_on:
-      - db
+  # web:
+  #   build: .
+  #   container_name: gis_app
+  #   restart: always
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     DATABASE_URL: "postgres://postgres:postgres@db:5432/gis_db"
+  #   depends_on:
+  #     - db
 
 volumes:
   postgres_data:

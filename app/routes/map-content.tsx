@@ -13,7 +13,7 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const API_URL = "http://localhost:3000/api/annotations";
+const API_URL = "/api/annotations";
 
 interface Annotation {
   id: string;
