@@ -1,22 +1,27 @@
-FROM node:24-alpine AS development-dependencies-env
-COPY . /app
+# Stage 1: Fast build using Bun
+FROM oven/bun:1-alpine AS builder
 WORKDIR /app
-RUN npm ci
 
-FROM node:24-alpine AS production-dependencies-env
-COPY ./package.json package-lock.json /app/
-WORKDIR /app
-RUN npm ci --omit=dev
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
-FROM node:24-alpine AS build-env
-COPY . /app/
-COPY --from=development-dependencies-env /app/node_modules /app/node_modules
-WORKDIR /app
-RUN npm run build
+COPY . .
+ENV NODE_ENV=production
+RUN bun run build
 
-FROM node:24-alpine
-COPY ./package.json package-lock.json /app/
-COPY --from=production-dependencies-env /app/node_modules /app/node_modules
-COPY --from=build-env /app/build /app/build
+# Stage 2: Production runtime using Node.js (avoids Bun react-dom resolution bugs)
+FROM node:22-alpine AS runner
 WORKDIR /app
-CMD ["npm", "run", "start"]
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/app ./app
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+
+EXPOSE 3000
+
+CMD ["npx", "tsx", "./app/server.ts"]
